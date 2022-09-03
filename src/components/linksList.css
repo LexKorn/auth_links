@@ -1,0 +1,4 @@
+.link {
+    display: grid;
+    grid-template-columns: 15% 78% 7%;
+}
