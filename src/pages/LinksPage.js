@@ -3,27 +3,27 @@ import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { InputFields } from '../components/InputFields';
 import { LinksList } from '../components/LinksList';
-import { useMessage } from '../hooks/message.hook';
+import { Pagination } from '../components/Pagination';
 import { BACK_URL } from '../config';
 
 
 export const LinksPage = () => {
     const {token} = useContext(AuthContext);
-    const message = useMessage();
 
     const [link, setLink] = useState('');
     const [links, setLinks] = useState([]);
-    // const [idLink, setIdLink] = useState('');
-    // const [shortLink, setShortLink] = useState('');
-    // const [targetLink, setTargetLink] = useState('');
-    // const [counter, setCounter] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [linksPerPage] = useState(4);
+    const [directionSort, setDirectionSort] = useState(true);
 
+
+    // POST link
     const createLinkHandler = async() => {        
         try {
 			const response = await fetch(`${BACK_URL}/squeeze?link=${link}`, {
 				method: 'POST',
 				headers: {
-                    'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${token}`,
 				}        
 			});
 
@@ -33,22 +33,16 @@ export const LinksPage = () => {
 				console.error(data);
 			}
 
-            console.log(data);
-
             setLink('');
             fetchLinks();
-            // setShortLink(data.short);           
-            // setLinks(state => [...state, data]);
-            // setIdLink(data.id);           
-            // setTargetLink(data.target);
-            // setCounter(data.counter);
 
 		} catch(err) {
 			console.error(err);
 		}
     };
 
-    // GET contact
+    
+    // GET links
     useEffect(() => {
 		fetchLinks();
 	}, [token]);
@@ -68,6 +62,45 @@ export const LinksPage = () => {
 	};
 
 
+    // Pagination
+    const lastLinksIndex = currentPage * linksPerPage;
+    const firstLinksIndex = lastLinksIndex - linksPerPage;
+    const currentLinks = links.slice(firstLinksIndex, lastLinksIndex);
+  
+    const paginate = pageNumber => setCurrentPage(pageNumber);
+  
+    const nextPage = () => {
+      if (currentPage < Math.ceil(links.length / linksPerPage)) {
+        setCurrentPage(prev => prev + 1);
+      }
+    };
+  
+    const prevPage = () => {
+      if (currentPage !== 1) {
+        setCurrentPage(prev => prev - 1);
+      }
+    };
+
+
+    // Sort
+    const sortHandler = (e) => {
+      let sortLinks = [];
+
+      if (directionSort) {
+        sortLinks = [...links].sort((a, b) => {
+          return a[e] > b[e] ? 1 : -1;
+        });
+      } else {
+        sortLinks = [...links].sort((a, b) => {
+          return a[e] < b[e] ? 1 : -1;
+        });
+      }
+
+      setLinks(sortLinks);
+      setDirectionSort(!directionSort);
+    };
+
+
     return (
         <div>
             <InputFields 
@@ -76,7 +109,13 @@ export const LinksPage = () => {
                 handler={createLinkHandler} 
                 title='Создайте короткую ссылку'
                 button='Создать' /> 
-            <LinksList links={links} />
+            <LinksList links={currentLinks} handler={e => sortHandler(e)} />
+            <Pagination 
+                linksPerPage={linksPerPage} 
+                totalLinks={links.length}
+                paginate={paginate}
+                prevHandler={prevPage}
+                nextHandler={nextPage} />
         </div>
     );
 };
