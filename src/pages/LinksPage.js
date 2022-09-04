@@ -5,6 +5,7 @@ import { InputFields } from '../components/InputFields';
 import { LinksList } from '../components/LinksList';
 import { Pagination } from '../components/Pagination';
 import { BACK_URL } from '../config';
+import { Loader } from '../components/Loader';
 
 
 export const LinksPage = () => {
@@ -15,6 +16,7 @@ export const LinksPage = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [linksPerPage] = useState(4);
     const [directionSort, setDirectionSort] = useState(true);
+    const [loading, setLoading] = useState(false);
 
 
     // POST link
@@ -48,6 +50,8 @@ export const LinksPage = () => {
 	}, [token]);
 
 	const fetchLinks = async () => {
+        setLoading(true);
+
 		fetch(`${BACK_URL}/statistics?offset=0&limit=5`, {
             method: 'GET',
             headers: {
@@ -56,9 +60,13 @@ export const LinksPage = () => {
         })
 			.then((json) => json.json())
 			.then((data) => {
-				setLinks(data);
-			})
-			.catch((err) => console.error(err))
+                setLinks(data);
+                setLoading(false);
+            })
+			.catch((err) => {
+                console.error(err);
+                setLoading(false);
+            });
 	};
 
 
@@ -109,7 +117,7 @@ export const LinksPage = () => {
                 handler={createLinkHandler} 
                 title='Создайте короткую ссылку'
                 button='Создать' /> 
-            <LinksList links={currentLinks} handler={e => sortHandler(e)} />
+            {loading ? <Loader /> : <LinksList links={currentLinks} handler={e => sortHandler(e)} />}
             <Pagination 
                 linksPerPage={linksPerPage} 
                 totalLinks={links.length}

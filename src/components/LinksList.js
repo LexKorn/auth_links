@@ -2,6 +2,11 @@ import { BACK_URL } from '../config';
 import './linksList.css';
 
 export const LinksList = ({links, handler}) => {
+    const strLength = str => {
+        if (str.length < 50) return str;
+        else return `${str.substring(0, 50)}...`;
+    };
+    
     return (
         <>
             <div className='row'>
@@ -14,7 +19,7 @@ export const LinksList = ({links, handler}) => {
                     {links.map(item=> (
                         <li className="collection-item link" key={item.id}>
                             <a href={`${BACK_URL}/s/${item.short}`} target="_blank">{item.short}</a>
-                            <a href={item.target} target="_blank">{item.target}</a>
+                            <a href={item.target} target="_blank">{strLength(item.target)}</a>
                             {item.counter}
                         </li>
                     ))}
